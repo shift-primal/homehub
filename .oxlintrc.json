@@ -1,0 +1,25 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": ["typescript", "unicorn", "oxc"],
+	"categories": {
+		"correctness": "error"
+	},
+	"rules": {
+		"eqeqeq": "error",
+		"no-console": "error",
+		"typescript/no-explicit-any": "error",
+		"typescript/consistent-type-imports": "error",
+		"typescript/switch-exhaustiveness-check": "error",
+		"typescript/no-floating-promises": "error",
+		"typescript/no-misused-promises": "error",
+		"typescript/await-thenable": "error",
+		"typescript/no-unnecessary-type-assertion": "error",
+		"import/no-default-export": "error",
+		"import/no-cycle": "error",
+		"react/react-in-jsx-scope": "off"
+	},
+	"ignorePatterns": [".output/**", "**/routeTree.gen.ts"],
+	"env": {
+		"builtin": true
+	}
+}

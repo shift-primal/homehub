@@ -1,0 +1,16 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"printWidth": 80,
+	"useTabs": true,
+	"semi": true,
+	"sortImports": true,
+	"sortTailwindcss": true,
+	"sortPackageJson": true,
+	"singleQuote": false,
+	"ignorePatterns": [
+		"pnpm-lock.yaml",
+		"**/routeTree.gen.ts",
+		".agents/",
+		".claude/"
+	]
+}
