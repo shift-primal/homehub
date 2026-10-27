@@ -1,5 +1,5 @@
 {
-	"name": "hub",
+	"name": "homehub",
 	"private": true,
 	"type": "module",
 	"imports": {
