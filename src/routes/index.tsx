@@ -1,26 +1,40 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { getJellyfinStatus } from "#/server/jellyfin";
+import { ServiceGroupContainer } from "#/components/service-group.tsx";
+import { getServices } from "#/server/get-service.ts";
+import type { ServiceGroup } from "#/server/services.ts";
 
 export const Route = createFileRoute("/")({
-	loader: () => getJellyfinStatus(),
+	loader: () => getServices(),
 	component: Home,
 });
 
 function Home() {
-	const jellyfin = Route.useLoaderData();
+	const initialServices = Route.useLoaderData();
+
+	const { data: services = [] } = useQuery({
+		queryKey: ["services"],
+		queryFn: () => getServices(),
+		initialData: initialServices,
+	});
+
+	const uniqueGroups = [
+		...new Set(services.map((s) => s.group as ServiceGroup)),
+	];
+	const groups = uniqueGroups.map((group) => ({
+		group,
+		list: services.filter((s) => s.group === group),
+	}));
 
 	return (
-		<div className="p-8">
+		<div className="space-y-6 p-8">
 			<h1 className="text-4xl font-bold">homehub</h1>
-			<ul className="mt-6">
-				<li>
-					Jellyfin:{" "}
-					{jellyfin.up
-						? `up (${jellyfin.name} ${jellyfin.version})`
-						: `down (${jellyfin.error})`}
-				</li>
-			</ul>
+			<div className="flex flex-wrap gap-8">
+				{groups.map(({ group, list }) => (
+					<ServiceGroupContainer key={group} group={group} list={list} />
+				))}
+			</div>
 		</div>
 	);
 }

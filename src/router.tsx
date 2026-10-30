@@ -13,6 +13,7 @@ export function getRouter() {
 		scrollRestoration: true,
 		defaultPreload: "intent",
 		defaultPreloadStaleTime: 0,
+		defaultNotFoundComponent: () => <p>Not found</p>,
 	});
 
 	setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient });

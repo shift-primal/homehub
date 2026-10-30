@@ -4,7 +4,7 @@
 	"useTabs": true,
 	"semi": true,
 	"sortImports": true,
-	"sortTailwindcss": true,
+	"sortTailwindcss": false,
 	"sortPackageJson": true,
 	"singleQuote": false,
 	"ignorePatterns": [
