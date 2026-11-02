@@ -1,21 +1,22 @@
 import { ServiceCard } from "#/components/service-card.tsx";
 import { ItemGroup } from "#/components/ui/item.tsx";
-import type { PreparedServiceCard } from "#/domain/services.ts";
-import type { ServiceGroup } from "#/server/services.ts";
+import type { Service, ServiceGroup } from "#/domain/services.ts";
 
 export const ServiceGroupContainer = ({
 	group,
 	list,
 }: {
 	group: ServiceGroup;
-	list: PreparedServiceCard[];
+	list: Service[];
 }) => {
 	return (
-		<ItemGroup className="max-w-sm">
+		<ItemGroup>
 			<p className="mb-2 text-lg font-semibold">{group}</p>
-			{list.map((s) => (
-				<ServiceCard key={s.id} {...s} />
-			))}
+			<div className="flex flex-wrap gap-2">
+				{list.map((s) => (
+					<ServiceCard key={s.id} service={s} />
+				))}
+			</div>
 		</ItemGroup>
 	);
 };

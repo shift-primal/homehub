@@ -1,20 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 
-import {
-	prepareServiceCard,
-	type PreparedServiceCard,
-} from "#/domain/services.ts";
+import type { Service, ServiceStatus } from "#/domain/services.ts";
 
 import { type Probe, type ServiceDef, serviceDefs } from "./services";
-
-export type ServiceStatus =
-	| { state: "up"; ms: number; version?: string }
-	| { state: "down"; error: string }
-	| { state: "skipped" };
-
-export type Service = Omit<ServiceDef, "port" | "probe"> & {
-	status: ServiceStatus;
-};
 
 const TIMEOUT_MS = 3000;
 
@@ -48,7 +36,8 @@ const probes: Record<Probe, (base: string) => Promise<string | undefined>> = {
 	},
 };
 
-async function check(def: ServiceDef, prod: boolean): Promise<ServiceStatus> {
+async function check(def: ServiceDef): Promise<ServiceStatus> {
+	const prod = process.env.APP_ENV === "prod";
 	const base = prod ? `http://127.0.0.1:${def.port}` : def.href;
 	if (!base) return { state: "skipped" };
 	const start = performance.now();
@@ -66,33 +55,19 @@ async function check(def: ServiceDef, prod: boolean): Promise<ServiceStatus> {
 	}
 }
 
+async function checkDef(def: ServiceDef): Promise<Service> {
+	const { port: _, probe: __, tailnet: ___, ...service } = def;
+	return { ...service, status: await check(def) };
+}
+
 export const getServices = createServerFn({ method: "GET" }).handler(
-	async (): Promise<PreparedServiceCard[]> => {
-		const prod = process.env.APP_ENV === "prod";
-
-		return Promise.all(
-			serviceDefs.map(async (def) => {
-				const status = await check(def, prod);
-				const { port: _, probe: __, ...cleanDef } = def;
-
-				return prepareServiceCard(cleanDef, status);
-			}),
-		);
-	},
+	(): Promise<Service[]> => Promise.all(serviceDefs.map(checkDef)),
 );
 
 export const checkSingleService = createServerFn({ method: "POST" })
 	.validator((id: string) => id)
-	.handler(async ({ data: id }): Promise<PreparedServiceCard> => {
-		const prod = process.env.APP_ENV === "prod";
-
+	.handler(({ data: id }): Promise<Service> => {
 		const def = serviceDefs.find((d) => d.id === id);
-		if (!def) {
-			throw new Error(`Service with ID "${id}" not found.`);
-		}
-
-		const status = await check(def, prod);
-		const { port: _, probe: __, ...cleanDef } = def;
-
-		return prepareServiceCard(cleanDef, status);
+		if (!def) throw new Error(`Service with ID "${id}" not found.`);
+		return checkDef(def);
 	});

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { BeszelGroup } from "#/components/beszel-card.tsx";
@@ -12,6 +12,11 @@ export const Route = createFileRoute("/")({
 		const [services, beszel] = await Promise.all([getServices(), getBeszel()]);
 		return { services, beszel };
 	},
+import { groupServices, servicesQuery } from "#/hooks/use-services.ts";
+
+export const Route = createFileRoute("/")({
+	loader: ({ context }) =>
+		context.queryClient.query({ ...servicesQuery, staleTime: "static" }),
 	component: Home,
 });
 
@@ -31,6 +36,8 @@ function Home() {
 		group,
 		list: services.filter((s) => s.group === group),
 	}));
+	const { data: services } = useSuspenseQuery(servicesQuery);
+	const groups = groupServices(services);
 
 	return (
 		<div className="space-y-6 p-8">

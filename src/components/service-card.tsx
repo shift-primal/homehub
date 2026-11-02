@@ -1,54 +1,33 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, X, BadgeQuestionMark, RefreshCw } from "lucide-react";
+import { cn } from "cn";
+import { RefreshCw } from "lucide-react";
 
+import { ServiceStatus } from "#/components/service-status.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import {
 	Item,
 	ItemActions,
-	ItemDescription,
 	ItemFooter,
 	ItemHeader,
 	ItemMedia,
 	ItemTitle,
 } from "#/components/ui/item.tsx";
-import type { PreparedServiceCard } from "#/domain/services.ts";
+import type { Service } from "#/domain/services.ts";
+import { useRefreshService } from "#/hooks/use-services.ts";
 import { icons } from "#/icons.ts";
-import { checkSingleService } from "#/server/get-service.ts";
 
-const ICON_MAP = {
-	check: Check,
-	x: X,
-	question: BadgeQuestionMark,
-} as const;
-
-export const ServiceCard = ({ id, name, status }: PreparedServiceCard) => {
+export const ServiceCard = ({ service }: { service: Service }) => {
+	const { id, name, href, status } = service;
 	const brandIcon = icons[id];
-	const queryClient = useQueryClient();
-
-	const { mutate: refreshService, isPending } = useMutation({
-		mutationFn: () => checkSingleService({ data: id }),
-		onSuccess: (updatedCard) => {
-			queryClient.setQueryData<PreparedServiceCard[]>(
-				["services"],
-				(oldServices) => {
-					if (!oldServices) return [updatedCard];
-					return oldServices.map((service) =>
-						service.id === id ? updatedCard : service,
-					);
-				},
-			);
-		},
-		onError: (error) => {
-			console.error(`Failed to refresh service ${id}:`, error);
-		},
-	});
-
-	const StatusIcon = ICON_MAP[status.iconName];
+	const { mutate: refresh, isPending } = useRefreshService(id);
 
 	return (
 		<Item
 			variant="outline"
-			className={isPending ? "opacity-70 transition-opacity" : ""}
+			className={cn(
+				"relative max-w-sm",
+				href && "has-[a:hover]:bg-muted",
+				isPending && "opacity-70 transition-opacity",
+			)}
 		>
 			<ItemHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 				<div className="flex items-center gap-3">
@@ -61,29 +40,29 @@ export const ServiceCard = ({ id, name, status }: PreparedServiceCard) => {
 							/>
 						)}
 					</ItemMedia>
-					<ItemTitle>{name}</ItemTitle>
+					<ItemTitle>
+						{href ? (
+							<a href={href} className="after:absolute after:inset-0">
+								{name}
+							</a>
+						) : (
+							name
+						)}
+					</ItemTitle>
 				</div>
-				<ItemActions>
+				<ItemActions className="relative z-10">
 					<Button
 						size="icon"
 						variant="ghost"
-						onClick={() => refreshService()}
+						onClick={() => refresh()}
 						disabled={isPending}
 					>
-						<RefreshCw
-							className={`size-4 ${isPending ? "animate-spin" : ""}`}
-						/>
+						<RefreshCw className={cn("size-4", isPending && "animate-spin")} />
 					</Button>
 				</ItemActions>
 			</ItemHeader>
 			<ItemFooter className="flex w-full flex-col items-start gap-1 rounded-b-xl border-t pt-2">
-				<div className="flex items-center gap-2">
-					<StatusIcon className="inline size-5" color={status.color} />
-					<span className="text-sm font-medium">{status.title}</span>
-				</div>
-				<ItemDescription className="text-muted-foreground pl-7 text-xs">
-					{status.description}
-				</ItemDescription>
+				<ServiceStatus status={status} />
 			</ItemFooter>
 		</Item>
 	);

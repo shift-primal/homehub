@@ -1,13 +1,10 @@
+import type { Service } from "#/domain/services.ts";
+
 export type Probe = "jellyfin" | "seerr" | "arr" | "http";
 
-export type ServiceGroup = "Media" | "Homelab" | "Apps";
-
-export type ServiceDef = {
-	id: string;
-	name: string;
-	group: ServiceGroup;
+// Everything the client sees, plus server-only fields for probing.
+export type ServiceDef = Omit<Service, "status"> & {
 	port: number;
-	href?: string;
 	tailnet?: true;
 	probe: Probe;
 };
@@ -36,6 +33,14 @@ export const serviceDefs: ServiceDef[] = [
 		group: "Homelab",
 		port: 9120,
 		href: "https://komodo.haugestol.com",
+		probe: "http",
+	},
+	{
+		id: "bezsel",
+		name: "Bezsel",
+		group: "Homelab",
+		port: 8090,
+		href: "https://kash-homelab.tail2b3796.ts.net:8090",
 		probe: "http",
 	},
 	{
