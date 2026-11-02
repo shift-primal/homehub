@@ -1,17 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
+import { BeszelGroup } from "#/components/beszel-card.tsx";
 import { ServiceGroupContainer } from "#/components/service-group.tsx";
+import { getBeszel } from "#/server/beszel.ts";
 import { getServices } from "#/server/get-service.ts";
 import type { ServiceGroup } from "#/server/services.ts";
 
 export const Route = createFileRoute("/")({
-	loader: () => getServices(),
+	loader: async () => {
+		const [services, beszel] = await Promise.all([getServices(), getBeszel()]);
+		return { services, beszel };
+	},
 	component: Home,
 });
 
 function Home() {
-	const initialServices = Route.useLoaderData();
+	const { services: initialServices, beszel } = Route.useLoaderData();
 
 	const { data: services = [] } = useQuery({
 		queryKey: ["services"],
@@ -31,6 +36,7 @@ function Home() {
 		<div className="space-y-6 p-8">
 			<h1 className="text-4xl font-bold">homehub</h1>
 			<div className="flex flex-wrap gap-8">
+				<BeszelGroup initial={beszel} />
 				{groups.map(({ group, list }) => (
 					<ServiceGroupContainer key={group} group={group} list={list} />
 				))}
