@@ -37,7 +37,7 @@ export const serviceDefs: ServiceDef[] = [
 	},
 	{
 		id: "bezsel",
-		name: "Bezsel",
+		name: "Beszel",
 		group: "Homelab",
 		port: 8090,
 		href: "https://kash-homelab.tail2b3796.ts.net:8090",
